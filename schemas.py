@@ -1,48 +1,38 @@
 """
-Database Schemas
+Database Schemas for Smart Second Brain
 
-Define your MongoDB collection schemas here using Pydantic models.
-These schemas are used for data validation in your application.
-
-Each Pydantic model represents a collection in your database.
-Model name is converted to lowercase for the collection name:
-- User -> "user" collection
-- Product -> "product" collection
-- BlogPost -> "blogs" collection
+Each Pydantic model corresponds to a MongoDB collection (lowercased class name).
 """
 
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, List, Dict, Any
+from datetime import datetime
 
-# Example schemas (replace with your own):
 
 class User(BaseModel):
-    """
-    Users collection schema
-    Collection name: "user" (lowercase of class name)
-    """
     name: str = Field(..., description="Full name")
     email: str = Field(..., description="Email address")
-    address: str = Field(..., description="Address")
-    age: Optional[int] = Field(None, ge=0, le=120, description="Age in years")
     is_active: bool = Field(True, description="Whether user is active")
 
-class Product(BaseModel):
-    """
-    Products collection schema
-    Collection name: "product" (lowercase of class name)
-    """
-    title: str = Field(..., description="Product title")
-    description: Optional[str] = Field(None, description="Product description")
-    price: float = Field(..., ge=0, description="Price in dollars")
-    category: str = Field(..., description="Product category")
-    in_stock: bool = Field(True, description="Whether product is in stock")
 
-# Add your own schemas here:
-# --------------------------------------------------
+class Folder(BaseModel):
+    name: str = Field(..., description="Folder display name")
+    key: str = Field(..., description="Unique key identifier, e.g., 'ideas', 'tasks'")
+    color: str = Field("#64748b", description="Hex color used in UI")
+    icon: str = Field("folder", description="Icon hint for UI")
+    priority: int = Field(0, description="Higher = more important")
 
-# Note: The Flames database viewer will automatically:
-# 1. Read these schemas from GET /schema endpoint
-# 2. Use them for document validation when creating/editing
-# 3. Handle all database operations (CRUD) directly
-# 4. You don't need to create any database endpoints!
+
+class Thought(BaseModel):
+    title: Optional[str] = Field(None, description="Short title")
+    content: Optional[str] = Field(None, description="Primary text content")
+    modality: str = Field(..., description="text | image | link | voice")
+    source_url: Optional[str] = Field(None, description="Original URL if any")
+    image_data_url: Optional[str] = Field(None, description="Base64 data URL for images (small uploads)")
+    tags: List[str] = Field(default_factory=list, description="Assigned tags")
+    folder: Optional[str] = Field(None, description="Assigned folder key")
+    meta: Dict[str, Any] = Field(default_factory=dict, description="Arbitrary metadata")
+    pinned: bool = Field(False, description="User pinned to keep active")
+    status: str = Field("active", description="active | snoozed | archived")
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
